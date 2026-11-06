@@ -99,25 +99,36 @@ def parse_date(s):
 
 
 def parse_promos(path, today):
-    """barcode -> list of (unit_price, min_qty, description, end_date)"""
+    """barcode -> list of (price_for_min_qty, min_qty, description, end_date)
+
+    Handles both layouts: the newer one (PromotionStartDateTime, Groups/PromotionItems/
+    PromotionItem with MinQty + DiscountedPrice per item) and the older flat one
+    (PromotionStartDate, MinQty + DiscountedPrice on the promotion, PromotionItems/Item).
+    """
     out = {}
     for el in iter_elements(path, {"promotion", "sale"}):
         d = children(el)
-        start, end = parse_date(d.get("promotionstartdate")), parse_date(d.get("promotionenddate"))
+        start = parse_date(d.get("promotionstartdatetime") or d.get("promotionstartdate"))
+        end = parse_date(d.get("promotionenddatetime") or d.get("promotionenddate"))
         if (start and start > today) or (end and end < today):
             continue
         clubs = [(c.text or "").strip() for c in el.iter() if local(c.tag) == "clubid"]
         if clubs and not any(c == "" or re.match(r"0(\D|$)", c) for c in clubs):
             continue  # members-only promotion
-        dp = num(d.get("discountedprice"))
-        if not dp or dp <= 0:
-            continue
-        min_qty = num(d.get("minqty")) or 1
-        codes = [(c.text or "").strip() for c in el.iter() if local(c.tag) == "itemcode"]
-        for code in codes:
-            if is_barcode(code):
-                out.setdefault(code, []).append((dp, min_qty, d.get("promotiondescription", ""),
-                                                 end.isoformat() if end else ""))
+        desc = d.get("promotiondescription", "")
+        top_dp, top_min = num(d.get("discountedprice")), num(d.get("minqty"))
+        for item in el.iter():
+            if local(item.tag) not in ("promotionitem", "item"):
+                continue
+            it = children(item)
+            code = it.get("itemcode", "")
+            if not is_barcode(code):
+                continue
+            dp = num(it.get("discountedprice")) or top_dp
+            if not dp or dp <= 0:
+                continue
+            min_qty = num(it.get("minqty")) or top_min or 1
+            out.setdefault(code, []).append((dp, max(min_qty, 1), desc, end.isoformat() if end else ""))
     return out
 
 
