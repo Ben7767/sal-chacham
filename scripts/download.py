@@ -35,8 +35,9 @@ async def collect(scraper, **kwargs):
 
 
 def store_id_from_name(name):
-    # PriceFull7290058140886-001-202611060300 -> 1
-    m = re.search(r"\d{13}-(\d+)-", name or "")
+    # PriceFull7290058140886-001-002-20261106-001017 -> 2  (chain-subchain-store-date)
+    name = name or ""
+    m = re.search(r"\d{13}-\d+-(\d+)-\d{8}", name) or re.search(r"\d{13}-(\d+)-\d{8,}", name)
     return int(m.group(1)) if m else None
 
 
@@ -57,15 +58,23 @@ async def download_chain(chain, max_stores):
     if store_ids:
         for sid in store_ids:
             print(f" prices, store {sid}")
-            await collect(new(), files_types=["PRICE_FULL_FILE"], store_id=int(sid), limit=1)
+            await collect(new(), files_types=["PRICE_FULL_FILE"], store_id=int(sid), limit=3)
     else:
         print(f" prices, {max_stores} stores")
-        names = await collect(new(), files_types=["PRICE_FULL_FILE"], limit=max_stores)
-        store_ids = [s for s in map(store_id_from_name, names) if s]
+        # the newest files are often the same store several times, so take more and pick distinct stores
+        names = await collect(new(), files_types=["PRICE_FULL_FILE"], limit=max_stores * 6)
+        store_ids = []
+        for s in map(store_id_from_name, names):
+            if s is not None and s not in store_ids and len(store_ids) < max_stores:
+                store_ids.append(s)
+        print(f" chosen stores: {store_ids}")
 
     for sid in store_ids:
         print(f" promos, store {sid}")
-        await collect(new(), files_types=["PROMO_FULL_FILE"], store_id=int(sid), limit=1)
+        if sid > 0:
+            await collect(new(), files_types=["PROMO_FULL_FILE"], store_id=int(sid), limit=3)
+        else:
+            await collect(new(), files_types=["PROMO_FULL_FILE"], limit=max_stores * 3)
 
 
 async def main(only):

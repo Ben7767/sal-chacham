@@ -61,7 +61,8 @@ def iter_elements(path, names):
 
 
 def read_store_id(path):
-    m = re.search(r"\d{13}-(\d+)-", path.name)
+    # PriceFull<chain>-<subchain>-<store>-<date>  (older: PriceFull<chain>-<store>-<date>)
+    m = re.search(r"\d{13}-\d+-(\d+)-\d{8}", path.name) or re.search(r"\d{13}-(\d+)-\d{8,}", path.name)
     if m:
         return int(m.group(1))
     for _, el in ET.iterparse(path, events=("end",)):
@@ -106,7 +107,7 @@ def parse_promos(path, today):
         if (start and start > today) or (end and end < today):
             continue
         clubs = [(c.text or "").strip() for c in el.iter() if local(c.tag) == "clubid"]
-        if clubs and not any(c in ("0", "") for c in clubs):
+        if clubs and not any(c == "" or re.match(r"0(\D|$)", c) for c in clubs):
             continue  # members-only promotion
         dp = num(d.get("discountedprice"))
         if not dp or dp <= 0:
@@ -139,20 +140,31 @@ def build():
         folder = DUMPS / c["id"]
         wanted = {int(s) for s in c.get("store_ids") or []}
         stores_prices, promos, store_ids = [], {}, []
-        for path in sorted(folder.rglob("*.xml")):
+        latest = {}  # (kind, store) -> newest file (names end with a timestamp)
+        for path in sorted(folder.rglob("*.xml"), key=lambda p: p.name):
             kind = file_kind(path)
-            if kind not in ("price", "promo"):
-                continue
-            sid = read_store_id(path)
-            if wanted and sid not in wanted:
+            if kind in ("price", "promo"):
+                latest[(kind, read_store_id(path))] = path
+        price_stores = sorted({sid for k, sid in latest if k == "price"})
+        if wanted:
+            price_stores = [s for s in price_stores if s in wanted]
+        price_stores = price_stores[: max(len(wanted), int(CONFIG.get("max_stores_per_chain", 3)))]
+        promo_debug = False
+        for (kind, sid), path in sorted(latest.items(), key=lambda x: (x[0][0], x[0][1] or 0)):
+            if sid not in price_stores:
                 continue
             try:
                 if kind == "price":
                     stores_prices.append(parse_prices(path))
                     store_ids.append(sid)
                 else:
-                    for code, lst in parse_promos(path, today).items():
+                    found = parse_promos(path, today)
+                    for code, lst in found.items():
                         promos.setdefault(code, []).extend(lst)
+                    if not found and not promo_debug:
+                        promo_debug = True
+                        print(f"  no promos parsed from {path.name}; sample:")
+                        print("  " + path.read_text(encoding="utf-8", errors="replace")[:1500].replace("\n", " "))
             except ET.ParseError as e:
                 print(f"skip broken file {path.name}: {e}")
 
@@ -172,7 +184,7 @@ def build():
             if unit < reg:
                 best_promo[code] = [unit, int(p[1]), p[2][:60], p[3]]
         per_chain.append((median, best_promo))
-        print(f"{c['name']}: {len(stores_prices)} stores, {len(median)} products, {len(best_promo)} promos")
+        print(f"{c['name']}: stores {store_ids}, {len(median)} products, {len(best_promo)} promos")
 
     rows = []
     for code, info in products.items():
