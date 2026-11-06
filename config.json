@@ -1,0 +1,39 @@
+{
+  "site_name": "סל חכם",
+  "max_stores_per_chain": 3,
+  "chains": [
+    {
+      "id": "rami",
+      "scraper": "RAMI_LEVY",
+      "name": "רמי לוי",
+      "color": "#1f6fd1",
+      "enabled": true,
+      "store_ids": []
+    },
+    {
+      "id": "osher",
+      "scraper": "OSHER_AD",
+      "name": "אושר עד",
+      "color": "#d14b1f",
+      "enabled": true,
+      "store_ids": []
+    },
+    {
+      "id": "yoh",
+      "scraper": "YOHANANOF",
+      "name": "יוחננוף",
+      "color": "#2e9d4f",
+      "enabled": true,
+      "store_ids": []
+    },
+    {
+      "id": "carrefour",
+      "scraper": "YAYNO_BITAN_AND_CARREFOUR",
+      "name": "קרפור",
+      "color": "#7b3fc4",
+      "enabled": false,
+      "store_ids": [],
+      "note": "חסום מחוץ לישראל - להפעיל רק כשמריצים ממחשב בארץ"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f3d2e">
+<title>סל חכם – השוואת מחירים בסופרים</title>
+<meta name="description" content="השוואת מחירים מוצר אחרי מוצר בין רמי לוי, אושר עד ויוחננוף. נתונים רשמיים מחוק שקיפות המחירים.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">🛒</span>
+    <div>
+      <h1>סל חכם</h1>
+      <p class="sub">איפה הסל שלך הכי זול?</p>
+    </div>
+  </div>
+  <p class="updated" id="updated">טוען מחירים…</p>
+</header>
+
+<div class="demo-banner" id="demoBanner" hidden>אלה נתוני דוגמה לבדיקה בלבד. המחירים האמיתיים יופיעו אחרי ההרצה הראשונה של העדכון האוטומטי.</div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-tab="search" role="tab">חיפוש מוצרים</button>
+  <button class="tab" data-tab="basket" role="tab">הסל שלי <span class="count" id="basketCount">0</span></button>
+</nav>
+
+<main>
+  <section id="tab-search" class="panel">
+    <div class="search-row">
+      <input id="q" type="search" placeholder="חפש מוצר, מותג או ברקוד…" autocomplete="off">
+      <button id="scanBtn" class="icon-btn" title="סריקת ברקוד" hidden>📷</button>
+    </div>
+    <div class="scanner" id="scanner" hidden>
+      <video id="video" playsinline muted></video>
+      <button id="scanClose" class="btn ghost">סגור מצלמה</button>
+    </div>
+    <p class="hint" id="hint">התחל להקליד כדי לחפש מבין כל המוצרים שמופיעים ביותר מרשת אחת.</p>
+    <ul class="results" id="results"></ul>
+  </section>
+
+  <section id="tab-basket" class="panel" hidden>
+    <div class="empty" id="basketEmpty">
+      <p>הסל ריק.</p>
+      <p>חפש מוצרים ולחץ <b>+ לסל</b> כדי להשוות.</p>
+    </div>
+    <div id="basketWrap" hidden>
+      <div class="totals" id="totals"></div>
+      <label class="toggle"><input type="checkbox" id="usePromos" checked> לכלול מבצעים פתוחים לכולם</label>
+      <div class="table-scroll">
+        <table class="compare" id="compare"></table>
+      </div>
+      <p class="note">המחיר לכל רשת הוא החציון בין הסניפים שנבדקו. ✦ = מחיר מבצע, שתקף רק כשקונים את הכמות שבמבצע. מוצר שחסר ברשת מסוימת לא נספר בסה"כ שלה, ולכן הסה"כ ההוגן מחושב רק על מוצרים שיש בכל הרשתות.</p>
+      <button class="btn ghost" id="clearBasket">ריקון הסל</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>הנתונים מקבצי המחירים שהרשתות מפרסמות לפי חוק קידום התחרות בענף המזון. המחירים בסניף עשויים להיות שונים.</p>
+  <p>נבנה ע"י <b>Tech4U</b></p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
