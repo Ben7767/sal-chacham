@@ -216,6 +216,9 @@ def build():
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    # a few rows in the log, to eyeball that prices look sane
+    for r in [r for r in rows if all(r[5]) and any(r[6])][:: max(1, len(rows) // 400)][:8]:
+        print("  sample:", r[1], r[3], r[4], r[5], [p and p[:2] for p in r[6]])
     print(f"wrote {len(rows)} comparable products -> {OUT} ({OUT.stat().st_size // 1024} KB)")
 
 
