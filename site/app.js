@@ -32,7 +32,11 @@
     renderBasket();
   }
 
-  const sizeText = (it) => [it.qty, it.unit].filter((x) => x && x !== "0").join(" ");
+  const sizeText = (it) => {
+    const q = String(it.qty || "").replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+    const u = it.unit === "לא ידוע" ? "" : it.unit;
+    return [q, u].filter((x) => x && x !== "0").join(" ");
+  };
   const minIdx = (arr) => {
     let best = -1;
     arr.forEach((v, i) => { if (v != null && (best < 0 || v < arr[best])) best = i; });
