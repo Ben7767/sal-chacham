@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 from il_supermarket_scarper import ScraperFactory
-from il_supermarket_scarper.utils.file_output import DiskFileOutput
+from il_supermarket_scarper.utils import DiskFileOutput
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
